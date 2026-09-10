@@ -1,7 +1,92 @@
 ﻿@page "/"
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using TodoList.Components.Classes
+@using TodoList.Components.Components
+
+@inject ProtectedLocalStorage LocalStorage
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<AddItem ItemAdded="AddItem" />
+<ItemList Items="_items" OnEdit="EditItem" OnDelete="DeleteItem" />
 
-Welcome to your new app.
+@if (_editingItem is not null)
+{
+    <EditItemModal Item="_editingItem"
+                   OnSaved="SaveEdit"
+                   OnCancelled="CancelEdit" />
+}
+
+@code {
+    private const string StorageKey = "todo-list";
+    private readonly List<Item> _items = [];
+
+    private Item? _originalItem;
+    private Item? _editingItem;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        var result = await LocalStorage.GetAsync<List<Item>>(StorageKey);
+
+        if (result.Success)
+        {
+            _items.AddRange(result.Value!);
+            StateHasChanged();
+        }
+    }
+
+    private async Task AddItem(Item item)
+    {
+        _items.Add(item);
+        await SaveItems();
+    }
+
+    private async Task DeleteItem(Item item)
+    {
+        _items.Remove(item);
+        await SaveItems();
+    }
+
+    private void EditItem(Item item)
+    {
+        _originalItem = item;
+        _editingItem = new Item
+        {
+            Title = item.Title,
+            When = item.When,
+            Completed = item.Completed
+        };
+    }
+
+    private async Task SaveEdit()
+    {
+        if (_originalItem is null || _editingItem is null)
+            return;
+
+        _originalItem.Title = _editingItem.Title;
+        _originalItem.When = _editingItem.When;
+        _originalItem.Completed = _editingItem.Completed;
+
+        await SaveItems();
+        
+        CloseEdit();
+    }
+
+    private void CancelEdit()
+    {
+        CloseEdit();
+    }
+
+    private void CloseEdit()
+    {
+        _originalItem = null;
+        _editingItem = null;
+    }
+
+    private async Task SaveItems()
+    {
+        await LocalStorage.SetAsync(StorageKey, _items);
+    }
+}
