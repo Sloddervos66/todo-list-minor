@@ -30,11 +30,16 @@
 
         var result = await LocalStorage.GetAsync<List<Item>>(StorageKey);
 
-        if (result.Success)
+        if (result is
+            {
+                Success: true, 
+                Value: not null
+            })
         {
-            _items.AddRange(result.Value!);
-            StateHasChanged();
+            _items.AddRange(result.Value);
         }
+        
+        StateHasChanged();
     }
 
     private async Task AddItem(Item item)
@@ -54,6 +59,7 @@
         _originalItem = item;
         _editingItem = new Item
         {
+            Id = item.Id,
             Title = item.Title,
             When = item.When,
             Completed = item.Completed
