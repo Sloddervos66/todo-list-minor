@@ -4,6 +4,12 @@
     .list-header {
         margin-left: 0.5rem;
     }
+    
+    .tasks-container {
+        max-height: 70vh;
+        overflow-y: auto;
+        padding-right: 0.5rem;
+    }
 </style>
 
 <div class="mt-4">
@@ -16,32 +22,36 @@
         </div>
     </div>
     
-    @if (Items is { Count: > 0 })
-    {
-        <div>
-            @foreach (var item in Items)
-            {
-                <TodoItem @key="item.Id"
-                          Item="item"
-                          OnEdit="OnEdit"
-                          OnDelete="OnDelete" />
-            }
-        </div>
-    }
-    else
-    {
-        <div class="card border-0 bg-light text-center py-5">
-            <div class="card-body">
-                <i class="bi bi-check2-circle fs-1 text-muted"></i>
-                
-                <h5 class="mt-3 mb-1">No tasks yet</h5>
-                
-                <p class="text-muted mb-0">
-                    Add your first task above to get started.
-                </p>
+    <hr class="my-4">
+    
+    <div class="tasks-container">
+        @if (Items is { Count: > 0 })
+        {
+            <div>
+                @foreach (var item in Items)
+                {
+                    <TodoItem @key="item.Id"
+                              Item="item"
+                              OnEdit="OnEdit"
+                              OnDelete="OnDelete" />
+                }
             </div>
-        </div>
-    }
+        }
+        else
+        {
+            <div class="card border-0 bg-light text-center py-5">
+                <div class="card-body">
+                    <i class="bi bi-check2-circle fs-1 text-muted"></i>
+                
+                    <h5 class="mt-3 mb-1">No tasks yet</h5>
+                
+                    <p class="text-muted mb-0">
+                        Add your first task above to get started.
+                    </p>
+                </div>
+            </div>
+        }
+    </div>
 </div>
 
 @code {
