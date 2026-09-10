@@ -8,7 +8,7 @@
 <PageTitle>Home</PageTitle>
 
 <AddItem ItemAdded="AddItem" />
-<ItemList Items="_items" OnEdit="EditItem" OnDelete="DeleteItem" />
+<ItemList Items="_items" OnEdit="EditItem" OnDelete="DeleteItem" OnCompletedChanged="SaveItems" />
 
 @if (_editingItem is not null)
 {
@@ -19,8 +19,8 @@
 
 @code {
     private const string StorageKey = "todo-list";
-    private readonly List<Item> _items = [];
-
+    
+    private List<Item> _items = [];
     private Item? _originalItem;
     private Item? _editingItem;
 
@@ -38,7 +38,8 @@
         {
             _items.AddRange(result.Value);
         }
-        
+
+        Filter();
         StateHasChanged();
     }
 
@@ -93,6 +94,12 @@
 
     private async Task SaveItems()
     {
+        Filter();
         await LocalStorage.SetAsync(StorageKey, _items);
+    }
+
+    private void Filter()
+    {
+        _items = _items.OrderBy(i => i.When).ToList();
     }
 }
