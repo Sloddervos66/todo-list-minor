@@ -16,4 +16,10 @@
         <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.5"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="Components\Authentication\AuthButton.razor" />
+      <_ContentIncludedByDefault Remove="Components\Authentication\AuthCard.razor" />
+      <_ContentIncludedByDefault Remove="Components\Authentication\AuthInput.razor" />
+    </ItemGroup>
+
 </Project>
