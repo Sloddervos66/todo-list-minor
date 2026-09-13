@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using TodoListApp.Components;
 using TodoListApp.Components.Account;
 using TodoListApp.Data;
+using TodoListApp.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,6 +42,10 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+
+builder.Services
+    .AddRepositories()
+    .AddServices();
 
 var app = builder.Build();
 

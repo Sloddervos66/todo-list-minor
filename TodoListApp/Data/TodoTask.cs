@@ -7,13 +7,15 @@ public class TodoTask
     public Guid Id { get; init; }
     
     [MaxLength(100)]
-    public string Title { get; init; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
 
     [MaxLength(500)]
-    public string Description { get; init; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
     
-    public DateTime DueDate { get; init; }
-    public bool Completed { get; init; }
+    public DateTime From { get; set; }
+    public DateTime To { get; set; }
+    
+    public bool Completed { get; set; }
     
     public Guid UserId { get; init; }
     public ApplicationUser User { get; init; } = null!;

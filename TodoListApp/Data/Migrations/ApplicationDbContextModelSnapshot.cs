@@ -298,15 +298,19 @@ namespace TodoListApp.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("description");
 
-                    b.Property<DateTime>("DueDate")
+                    b.Property<DateTime>("From")
                         .HasColumnType("TEXT")
-                        .HasColumnName("due_date");
+                        .HasColumnName("from");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("TEXT")
                         .HasColumnName("title");
+
+                    b.Property<DateTime>("To")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("to");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("TEXT")
