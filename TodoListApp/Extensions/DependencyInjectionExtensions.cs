@@ -16,6 +16,7 @@ public static class DependencyInjectionExtensions
 
         public IServiceCollection AddServices()
         {
+            services.AddScoped<ICurrentUserService, CurrentUserService>();
             services.AddScoped<ITodoTaskService, TodoTaskService>();
             
             return services;
