@@ -1,0 +1,106 @@
+﻿@using TodoListApp.Dtos
+@using TodoListApp.Extensions
+@using TodoListApp.Services
+
+@inject ITodoTaskService TodoTaskService
+
+<Dialog OnClose="Cancel">
+    <EditForm Model="_task" OnValidSubmit="Save">
+        <DataAnnotationsValidator />
+        
+        <div class="modal-header">
+            <h5 class="modal-title">Create task</h5>
+            
+            <button type="button"
+                    class="btn-close"
+                    @onclick="Cancel">
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            <div class="mb-3">
+                <label for="title" class="form-label">Title</label>
+                
+                <InputText id="title"
+                           class="form-control"
+                           @bind-Value="_task.Title" />
+                
+                <ValidationMessage For="() => _task.Title" class="text-danger small" />
+            </div>
+            
+            <div class="mb-3">
+                <label for="description" class="form-label">
+                    Description
+                </label>
+
+                <InputTextArea id="description"
+                               class="form-control"
+                               rows="4"
+                               @bind-Value="_task.Description" />
+            </div>
+            
+            <div class="row g-3">
+                <div class="col-6">
+                    <label for="fromDate" class="form-label">From</label>
+
+                    <input id="fromDate"
+                           type="datetime-local"
+                           class="form-control"
+                           step="900"
+                           @bind="_task.From" />
+
+                    <ValidationMessage For="() => _task.From"
+                                       class="text-danger small" />
+                </div>
+
+                <div class="col-6">
+                    <label for="toDate" class="form-label">To</label>
+
+                    <input id="toDate"
+                           type="datetime-local"
+                           class="form-control"
+                           step="900"
+                           @bind="_task.To" />
+
+                    <ValidationMessage For="() => _task.To"
+                                       class="text-danger small" />
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal-footer">
+            <button type="button"
+                    class="btn btn-secondary"
+                    @onclick="Cancel">
+                Cancel
+            </button>
+
+            <button type="submit"
+                    class="btn btn-success">
+                Create task
+            </button>
+        </div>
+    </EditForm>
+</Dialog>
+
+@code {
+    [Parameter] public DateTime? InitialFrom { get; set; }
+    [Parameter] public EventCallback OnSaved { get; set; }
+    [Parameter] public EventCallback OnCancelled { get; set; }
+
+    private CreateTodoTaskDto _task = new();
+
+    protected override void OnInitialized()
+    {
+        _task.From = InitialFrom ?? DateTime.Now.ToQuarterHour();
+        _task.To = _task.From.AddHours(1);
+    }
+
+    private async Task Save()
+    {
+        await TodoTaskService.CreateAsync(_task);
+        await OnSaved.InvokeAsync();
+    }
+
+    private Task Cancel() => OnCancelled.InvokeAsync();
+}

@@ -28,12 +28,16 @@ public sealed class TodoTaskService(ITodoTaskRepository repository, ICurrentUser
         if (dto.To <= dto.From)
             throw new ArgumentException("Task end must be after task start.");
         
+        if (!dto.From.IsQuarterHour() || !dto.To.IsQuarterHour())
+            throw new ArgumentException("Tasks must start and end on a 15-minute interval.");
+        
         var userId = await currentUser.GetUserIdAsync();
         var task = new TodoTask
         {
             Id = Guid.NewGuid(),
             UserId = userId,
             Title = dto.Title,
+            Description = dto.Description,
             From = dto.From,
             To = dto.To,
             Completed = false
@@ -54,6 +58,7 @@ public sealed class TodoTaskService(ITodoTaskRepository repository, ICurrentUser
             return false;
 
         task.Title = dto.Title;
+        task.Description = dto.Description;
         task.From = dto.From;
         task.To = dto.To;
         task.Completed = dto.Completed;
