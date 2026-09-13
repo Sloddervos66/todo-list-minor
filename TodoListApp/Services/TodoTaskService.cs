@@ -5,27 +5,30 @@ using TodoListApp.Repositories;
 
 namespace TodoListApp.Services;
 
-public class TodoTaskService(ITodoTaskRepository repository) : ITodoTaskService
+public sealed class TodoTaskService(ITodoTaskRepository repository, ICurrentUserService currentUser) : ITodoTaskService
 {
-    public async Task<List<TodoTaskDto>> GetForUserAsync(Guid userId, DateTime from, DateTime to)
+    public async Task<List<TodoTaskDto>> GetForUserAsync(DateTime from, DateTime to)
     {
+        var userId = await currentUser.GetUserIdAsync();
         var tasks = await repository.GetAllByUserIdAsync(userId, from, to);
-
+        
         return tasks.Select(TodoTaskExtensions.ToDto).ToList();
     }
 
-    public async Task<TodoTaskDto?> GetByIdAsync(Guid userId, Guid taskId)
+    public async Task<TodoTaskDto?> GetByIdAsync(Guid taskId)
     {
+        var userId = await currentUser.GetUserIdAsync();
         var task = await repository.GetByIdAsync(userId, taskId);
         
         return task?.ToDto();
     }
 
-    public async Task<TodoTaskDto> CreateAsync(Guid userId, CreateTodoTaskDto dto)
+    public async Task<TodoTaskDto> CreateAsync(CreateTodoTaskDto dto)
     {
         if (dto.To <= dto.From)
             throw new ArgumentException("Task end must be after task start.");
-
+        
+        var userId = await currentUser.GetUserIdAsync();
         var task = new TodoTask
         {
             Id = Guid.NewGuid(),
@@ -35,18 +38,18 @@ public class TodoTaskService(ITodoTaskRepository repository) : ITodoTaskService
             To = dto.To,
             Completed = false
         };
-        
         await repository.AddAsync(task);
         
         return task.ToDto();
     }
 
-    public async Task<bool> UpdateAsync(Guid userId, Guid taskId, UpdateTodoTaskDto dto)
+    public async Task<bool> UpdateAsync(Guid taskId, UpdateTodoTaskDto dto)
     {
         if (dto.To <= dto.From)
             throw new ArgumentException("Task end must be after task start.");
         
-        var task = await repository.GetByIdAsync(taskId, userId);
+        var userId = await currentUser.GetUserIdAsync();
+        var task = await repository.GetByIdAsync(userId, taskId);
         if (task is null)
             return false;
 
@@ -60,8 +63,9 @@ public class TodoTaskService(ITodoTaskRepository repository) : ITodoTaskService
         return true;
     }
 
-    public async Task<bool> DeleteAsync(Guid userId, Guid taskId)
+    public async Task<bool> DeleteAsync(Guid taskId)
     {
+        var userId = await currentUser.GetUserIdAsync();
         var task = await repository.GetByIdAsync(userId, taskId);
         if (task is null)
             return false;
