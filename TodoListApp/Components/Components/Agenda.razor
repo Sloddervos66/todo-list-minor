@@ -86,6 +86,16 @@
         border-left: 3px solid var(--bs-primary);
         font-size: 0.8rem;
         overflow: hidden;
+
+        z-index: 5;
+        cursor: pointer;
+
+        transition: filter 0.15s ease, transform 0.15s ease;
+    }
+
+    .agenda-task:hover {
+        filter: brightness(0.95);
+        transform: translateY(-1px);
     }
 
     .current-time-line {
@@ -181,7 +191,10 @@
                             @foreach (var task in GetTasksForDay(day))
                             {
                                 <div class="agenda-task"
-                                     style="@GetTaskStyle(task, day)">
+                                     style="@GetTaskStyle(task, day)"
+                                     @onclick="() => OpenDialogTask(task)"
+                                     @onclick:stopPropagation
+                                     @oncontextmenu:stopPropagation>
                                     @task.Title
                                 </div>
                             }
@@ -210,6 +223,11 @@
                   OnCancelled="CloseCreateDialog"/>
 }
 
+@if (_selectedTask is not null)
+{
+    <TaskDialog @key="_selectedTask.Id" Task="_selectedTask" OnClosed="CloseTaskDialog" OnSaved="TaskSaved" OnDeleted="TaskDeleted" />
+}
+
 @code {
     [Parameter, EditorRequired] public IReadOnlyList<TodoTaskDto> Tasks { get; set; } = [];
     [Parameter] public EventCallback<(DateTime From, DateTime To)> RangeChanged { get; set; }
@@ -228,6 +246,8 @@
     
     private bool _showCreateDialog;
     private DateTime? _createFrom;
+    
+    private TodoTaskDto? _selectedTask;
 
     public async ValueTask DisposeAsync()
     {
@@ -332,23 +352,27 @@
         _showCreateDialog = true;
     }
 
-    private double GetTaskTop(TodoTaskDto task, DateTime day)
+    private void OpenDialogTask(TodoTaskDto task)
     {
-        var minutes = (task.From - day.Date).TotalMinutes;
-        return minutes;
+        _selectedTask = task;
+        Console.WriteLine($"Clicked task: {task.Title}");
     }
 
-    private double GetTaskHeight(TodoTaskDto task)
+    private async Task TaskSaved()
     {
-        return (task.To - task.From).TotalMinutes;
+        CloseTaskDialog();
+        await NotifyRangeChanged();
     }
 
-    private string GetTaskStyle(TodoTaskDto task, DateTime day)
+    private async Task TaskDeleted()
     {
-        var top = GetTaskTop(task, day);
-        var height = GetTaskHeight(task);
+        CloseTaskDialog();
+        await NotifyRangeChanged();
+    }
 
-        return $"top: {top}px; height: {height}px";
+    private void CloseTaskDialog()
+    {
+        _selectedTask = null;
     }
 
     private IEnumerable<TodoTaskDto> GetTasksForDay(DateTime day)
@@ -357,6 +381,25 @@
         var dayEnd = dayStart.AddDays(1);
         
         return Tasks.Where(t => t.From < dayEnd && t.To > dayStart);
+    }
+    
+    private static double GetTaskTop(TodoTaskDto task, DateTime day)
+    {
+        var minutes = (task.From - day.Date).TotalMinutes;
+        return minutes;
+    }
+
+    private static double GetTaskHeight(TodoTaskDto task)
+    {
+        return (task.To - task.From).TotalMinutes;
+    }
+
+    private static string GetTaskStyle(TodoTaskDto task, DateTime day)
+    {
+        var top = GetTaskTop(task, day);
+        var height = GetTaskHeight(task);
+
+        return $"top: {top}px; height: {height}px";
     }
     
     private static string GetCurrentTimeStyle()

@@ -1,0 +1,209 @@
+﻿@using TodoListApp.Dtos
+@using TodoListApp.Services
+
+@inject ITodoTaskService TodoTaskService
+
+<Dialog OnClose="Close">
+    <EditForm Model="_task" OnValidSubmit="Save">
+        <DataAnnotationsValidator/>
+
+        @if (!_confirmDelete)
+        {
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title">@Task.Title</h5>
+                    <small class="text-muted">
+                        @Task.From.ToString("dddd, MMMM d, yyyy")
+                    </small>
+                </div>
+
+                <button type="button"
+                        class="btn-close"
+                        @onclick="Close">
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="title" class="form-label">Title</label>
+
+                    <InputText id="title"
+                               class="form-control"
+                               @bind-Value="_task.Title"/>
+
+                    <ValidationMessage For="() => _task.Title"
+                                       class="text-danger small"/>
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">
+                        Description
+                    </label>
+
+                    <InputTextArea id="description"
+                                   class="form-control"
+                                   rows="4"
+                                   @bind-Value="_task.Description"/>
+
+                    <ValidationMessage For="() => _task.Description"
+                                       class="text-danger small"/>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-6">
+                        <label for="from" class="form-label">
+                            From
+                        </label>
+
+                        <input id="from"
+                               type="datetime-local"
+                               class="form-control"
+                               step="900"
+                               @bind="_task.From"/>
+
+                        <ValidationMessage For="() => _task.From"
+                                           class="text-danger small"/>
+                    </div>
+
+                    <div class="col-6">
+                        <label for="to" class="form-label">
+                            To
+                        </label>
+
+                        <input id="to"
+                               type="datetime-local"
+                               class="form-control"
+                               step="900"
+                               @bind="_task.To"/>
+
+                        <ValidationMessage For="() => _task.To"
+                                           class="text-danger small"/>
+                    </div>
+                </div>
+
+                <div class="form-check mt-3">
+                    <InputCheckbox id="completed"
+                                   class="form-check-input"
+                                   @bind-Value="_task.Completed"/>
+
+                    <label class="form-check-label" for="completed">
+                        Completed
+                    </label>
+                </div>
+            </div>
+
+            <div class="modal-footer justify-content-between">
+                <button type="button"
+                        class="btn btn-danger"
+                        @onclick="BeginDelete">
+                    <i class="bi bi-trash me-1"></i>
+                    Delete
+                </button>
+
+                <div class="d-flex gap-2">
+                    <button type="button"
+                            class="btn btn-secondary"
+                            @onclick="Close">
+                        Cancel
+                    </button>
+
+                    <button type="submit"
+                            class="btn btn-primary">
+                        Save changes
+                    </button>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="modal-header">
+                <h5 class="modal-title">Delete task?</h5>
+
+                <button type="button"
+                        class="btn-close"
+                        @onclick="CancelDelete">
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <p class="mb-2">
+                    Are you sure you want to delete this task?
+                </p>
+
+                <p class="fw-semibold mb-0">
+                    @Task.Title
+                </p>
+
+                <small class="text-muted">
+                    This action cannot be undone.
+                </small>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-secondary"
+                        @onclick="CancelDelete">
+                    Cancel
+                </button>
+
+                <button type="button"
+                        class="btn btn-danger"
+                        @onclick="ConfirmDelete">
+                    <i class="bi bi-trash me-1"></i>
+                    Delete task
+                </button>
+            </div>
+        }
+    </EditForm>
+</Dialog>
+
+@code {
+    [Parameter, EditorRequired] public TodoTaskDto Task { get; set; } = null!;
+    [Parameter]
+    public EventCallback OnClosed { get; set; }
+    [Parameter]
+    public EventCallback OnSaved { get; set; }
+    [Parameter]
+    public EventCallback OnDeleted { get; set; }
+
+    private UpdateTodoTaskDto _task = new();
+
+    private bool _confirmDelete;
+
+    protected override void OnInitialized()
+    {
+        _task = new UpdateTodoTaskDto
+        { 
+            Title = Task.Title, 
+            Description = Task.Description, 
+            From = Task.From, 
+            To = Task.To,
+            Completed = Task.Completed
+        };
+    }
+
+    private void BeginDelete()
+    {
+        _confirmDelete = true;
+    }
+
+    private void CancelDelete()
+    {
+        _confirmDelete = false;
+    }
+    
+    private async Task Save()
+    {
+        await TodoTaskService.UpdateAsync(Task.Id, _task);
+        await OnSaved.InvokeAsync();
+    }
+
+    private async Task ConfirmDelete()
+    {
+        await TodoTaskService.DeleteAsync(Task.Id);
+        await OnDeleted.InvokeAsync();
+    }
+
+    private Task Close()
+        => OnClosed.InvokeAsync();
+}

@@ -20,7 +20,6 @@ public sealed class TodoTaskRepository(ApplicationDbContext db) : ITodoTaskRepos
     public async Task<TodoTask?> GetByIdAsync(Guid userId, Guid taskId)
     {
         return await db.TodoTasks
-            .AsNoTracking()
             .FirstOrDefaultAsync(t => t.UserId == userId && t.Id == taskId);
     }
 
