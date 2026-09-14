@@ -27,6 +27,7 @@
     }
 
     .agenda-day-header {
+        height: 70px;
         position: sticky;
         top: 0;
         z-index: 2;
@@ -417,6 +418,14 @@
         });
     }
     
+    private string GetCurrentTimeStyle()
+    {
+        var minutes = CurrentTime.TimeOfDay.TotalMinutes;
+        var top = 70 + minutes * PixelsPerMinute;
+
+        return $"top: {top.ToString(CultureInfo.InvariantCulture)}px;";
+    }
+    
     private static double GetTaskTop(TodoTaskDto task, DateTime day)
     {
         var minutes = (task.From - day.Date).TotalMinutes;
@@ -441,14 +450,6 @@
             $"height: {height.ToString(CultureInfo.InvariantCulture)}px; " +
             $"left: {left.ToString(CultureInfo.InvariantCulture)}%; " +
             $"width: {width.ToString(CultureInfo.InvariantCulture)}%;";
-    }
-    
-    private static string GetCurrentTimeStyle()
-    {
-        var minutes = DateTime.Now.TimeOfDay.TotalMinutes;
-        var top = minutes * PixelsPerMinute;
-
-        return $"top: {top.ToString(CultureInfo.InvariantCulture)}px;";
     }
     
     private static DateTime GetStartOfWeek(DateTime date)
